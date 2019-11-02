@@ -1,0 +1,175 @@
+<body></body>
+<script src="http://gamingJS.com/Three.js"></script>
+<script src="http://gamingJS.com/ChromeFixes.js"></script>
+<script>
+
+var is_cartwheeling = false;
+var is_flipping = false;
+var is_moving_right, is_moving_left, is_moving_forward, is_moving_back;
+
+var scene = new THREE.Scene();
+var turning = false;
+var flipping = false;
+var marker = new THREE.Object3D();
+scene.add(marker);
+
+
+
+var aspect_ratio = window.innerWidth / window.innerHeight;
+var camera = new THREE.PerspectiveCamera(75, aspect_ratio, 1, 10000);
+camera.position.z = 500;
+
+
+
+var renderer = new THREE.CanvasRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+
+var cover = new THREE.MeshNormalMaterial();
+
+marker.add(camera)
+var body = new THREE.SphereGeometry(100);
+var avatar = new THREE.Mesh(body, cover);
+marker.add(avatar);
+
+var hand = new THREE.SphereGeometry(50);
+
+
+var right_hand = new THREE.Mesh(hand, cover);
+right_hand.position.set(-150, 0, 0);
+avatar.add(right_hand);
+
+
+var left_hand = new THREE.Mesh(hand, cover);
+left_hand.position.set(150,0,0);
+avatar.add(left_hand);
+
+var foot = new THREE.SphereGeometry(50);
+var head = new THREE.SphereGeometry(125);
+
+
+var right_foot = new THREE.Mesh(foot,cover);
+right_foot.position.set(-75, -125, 0);
+avatar.add(right_foot);
+
+var left_foot = new THREE.Mesh(foot, cover);
+left_foot.position.set(75, -125,0);
+avatar.add(left_foot);
+
+var Head = new THREE.Mesh(head, cover);
+Head.position.set(0, 125, 0);
+avatar.add(Head);
+
+var no = [];
+
+function tree(x, z){
+  var bound = new THREE.Mesh(
+    new THREE.CircleGeometry(300),
+    new THREE.MeshNormalMaterial()
+    );
+  bound.position.y = -120;
+  bound.rotation.x = -Math.PI/2;
+  var treetop = new THREE.Mesh(
+    new THREE.SphereGeometry(100), 
+    new THREE.MeshBasicMaterial({color:0x228B22}));
+  treetop.position.y = 175;
+
+  var treetrunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(50,50,200), 
+    new THREE.MeshBasicMaterial({color:0xA0522D}));
+  //treetop.position.set(250, 0, -100);
+  treetrunk.add(treetop);
+  treetrunk.add(bound);
+  no.push(bound);
+  treetrunk.position.set(x, -60, z);
+  //scene.add(treetop);
+  scene.add(treetrunk);
+}
+
+
+
+tree(500, 0);
+tree(-500, 0);
+tree(750, -1000);
+tree(-750, -1000);
+
+
+
+document.addEventListener('keydown', function(event){
+  var code = event.keyCode;
+  if (code == 37) { 
+  marker.position.x = marker.position.x-5;
+  is_moving_left = true;
+  }
+  if (code == 38) {
+  marker.position.z = marker.position.z-5;
+  is_moving_forward = true;
+  }
+  if (code == 39) {
+  marker.position.x = marker.position.x+5;
+  is_moving_right = true;
+  }
+  if (code == 40) {
+  marker.position.z = marker.position.z+5;
+  is_moving_back = true;
+  }
+  if (code == 67) is_cartwheeling = !is_cartwheeling;
+  if (code == 70) is_flipping = !is_flipping;
+});
+
+document.addEventListener('keyup', function(event) {
+var code = event.keyCode;
+if (code == 37) is_moving_left = false;
+if (code == 38) is_moving_forward = false;
+if (code == 39) is_moving_right = false;
+if (code == 40) is_moving_back = false;
+});
+
+function isWalking()
+{
+if (is_moving_right) return true;
+if (is_moving_left) return true;
+if (is_moving_forward) return true;
+if (is_moving_back) return true;
+return false;
+};
+
+var clock = new THREE.Clock();
+
+function walk()
+{
+if (!isWalking()) return;
+var position = Math.sin(clock.getElapsedTime()*5)*50;
+Head.position.x = position;
+}
+
+function acrobatics()
+{
+if(is_cartwheeling)
+{avatar.rotation.z = avatar.rotation.z + 0.05;
+}
+if(is_flipping)
+{avatar.rotation.x = avatar.rotation.x + 0.05;
+}
+};
+
+function animate()
+{
+requestAnimationFrame(animate);
+walk();
+acrobatics();
+renderer.render(scene,camera);
+}
+animate();
+
+
+function boom(){
+  var vector = new THREE.Vector3(0, -1, 0);
+  var ray = new THREE.Ray(marker.position, vector);
+  var intersects = ray.intersectObjects(no);
+  if (intersects.length>0) return true;
+  else return false;
+}
+
+</script>
